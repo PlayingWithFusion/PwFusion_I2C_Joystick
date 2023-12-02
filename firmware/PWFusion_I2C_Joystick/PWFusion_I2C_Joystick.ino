@@ -46,8 +46,10 @@
 #include <WireS.h>
 #include <ezButton.h>
 
-uint8_t primaryAddress = 0x03;
-uint8_t secondaryAddress = 0x04;
+uint8_t address0 = 0x05;  // No ADR jumpers cut
+uint8_t address1 = 0x06;  // ADR jumper 0 cut
+uint8_t address2 = 0x07;  // ADR jumper 1 cut
+uint8_t address3 = 0x08;  // ADR jumpers 0 and 1 cut
 
 // Define pins
 #define VRX A2
@@ -55,7 +57,8 @@ uint8_t secondaryAddress = 0x04;
 #define SW 0
 
 // Address selecter pin
-#define ADR_SEL 7
+#define ADR_SEL_0 7
+#define ADR_SEL_1 10
 
 ezButton button(SW);
 
@@ -81,7 +84,8 @@ int joystickData[] = {0, 0, 0};
 int btnState;
 
 void setup() {
-  pinMode(ADR_SEL, INPUT);
+  pinMode(ADR_SEL_0, INPUT);
+  pinMode(ADR_SEL_1, INPUT);
   startI2C();
 
   pinMode(SW, INPUT);
@@ -91,10 +95,14 @@ void setup() {
 void startI2C() {
 
   // Select the i2c address based on the state of the jumper
-  if (digitalRead(ADR_SEL) == LOW) {
-    Wire.begin(primaryAddress);
+  if (digitalRead(ADR_SEL_0) == LOW && digitalRead(ADR_SEL_1) == LOW) { 
+    Wire.begin(address0);
+  } else if (digitalRead(ADR_SEL_0) == HIGH && digitalRead(ADR_SEL_1) == LOW) {
+    Wire.begin(address1);
+  } else if (digitalRead(ADR_SEL_0) == LOW && digitalRead(ADR_SEL_1) == HIGH) {
+    Wire.begin(address2);
   } else {
-    Wire.begin(secondaryAddress);
+    Wire.begin(address3);
   }
 
   Wire.onReceive(receiveEvent);
